@@ -34,10 +34,8 @@ MBAI, AI, the professors, the module codes, any smu.edu.sg sender, or your name.
 arguments. Mail must be open and the Mac awake for the rule to run. The first time, macOS asks you to allow
 Terminal to control Mail; click OK.
 
-**B. Outlook on the web (works even when your laptop is off, if SMU allows external forwarding).**
-outlook.office.com → Settings → Mail → Rules → Add new rule → condition *Subject or body includes* your keywords →
-action *Forward to* your Gmail. If a test email bounces with "Your organization does not allow external
-forwarding", use option A.
+**B. Microsoft Outlook (web, new Outlook, classic Windows, or Mac).** Follow the step-by-step guide in
+[OUTLOOK_SETUP.md](OUTLOOK_SETUP.md). The rule lives on the server, so it works even when your laptop is off.
 
 Test it: send yourself (at the school address) an email with "MBAI test" in the subject. Within about a minute, a
 "Fwd: MBAI test" email should land in your Gmail.

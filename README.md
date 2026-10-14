@@ -28,5 +28,5 @@ Open the deployed URL, press Cmd+Shift+5 and record, then click **Play walkthrou
 | Human gate | No reply/forward/delete steps in the Zap | Prompt forbids reply/forward/delete/move/mark-read; email text treated as data |
 | Trajectory | Zap History | Each run is a session log under the routine |
 
-**Teammates: set up your own copy with [`sentinel/SETUP.md`](sentinel/SETUP.md).**
+**Teammates: set up your own copy with [`sentinel/SETUP.md`](sentinel/SETUP.md).** Outlook users: start with [`sentinel/OUTLOOK_SETUP.md`](sentinel/OUTLOOK_SETUP.md).
 Routines are per account: each person creates their own from the prompt templates in `sentinel/`.
