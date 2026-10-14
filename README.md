@@ -21,10 +21,10 @@ Open the deployed URL, press Cmd+Shift+5 and record, then click **Play walkthrou
 
 | | Zapier | Claude routines (claude.ai/code/routines) |
 |---|---|---|
-| Observe | Outlook "New Email Matching Search" (instant) | Cloud agent reads Outlook through the Microsoft 365 connector |
+| Observe | School inbox → mail rule forwards to personal Gmail → Gmail "New Email Matching Search" (instant) | Same forwarded emails, read through the Gmail connector |
 | Schedule | Instant alert + Schedule by Zapier at 7 pm | Hourly 08:00–23:00 SGT (`0 0-15 * * *` UTC) + daily 19:00 SGT (`0 11 * * *` UTC) |
 | Think | Filter + AI by Zapier summary | Claude Sonnet 5.5 matches keywords, summarises, groups by module, flags deadlines |
-| Act | Slack DM + Outlook send to personal email | Slack DM + Gmail to your personal address |
+| Act | Slack DM and/or Gmail notification | Push notification to the Claude phone app + Gmail (Slack optional) |
 | Human gate | No reply/forward/delete steps in the Zap | Prompt forbids reply/forward/delete/move/mark-read; email text treated as data |
 | Trajectory | Zap History | Each run is a session log under the routine |
 
