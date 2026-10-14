@@ -19,20 +19,31 @@ timings (immediate alert + 7pm digest) and **Slack + personal email** as channel
 
 ## Part A — the two Zaps (built in the Zapier UI; nothing to code)
 
+School mail is **Microsoft 365 / Outlook** (`mbai.smu.edu.sg` MX → `mail.protection.outlook.com`), so the
+observe step uses Zapier's **Microsoft Outlook** app. Sign in with the school account when Zapier asks.
+
+Search string (Outlook/KQL syntax; `OR` must be uppercase; add each member's full name and their other module profs):
+`MBAI OR "Artificial Intelligence" OR "Sungjong Roh" OR "An-Ping Lin" OR "Ernst Christian Osinga" OR "Lim Yun Fong" OR "Alan Asman"`
+
 ### Zap 1 · Immediate alert (the loop: every matching email → one alert)
-1. **Trigger:** Gmail → *New Email Matching Search*, account = school mailbox. Search string:
-   `newer_than:1d {MBAI "Artificial Intelligence" "Sungjong Roh" "An-Ping Lin" "Ernst Christian Osinga" "Lim Yun Fong" "Alan Asman"}`
-   (Gmail `{ }` = OR. Add each member's full name and their other module profs.)
-2. **Filter by Zapier** (belt and braces): continue only if Subject or Body *contains* one of the same keywords.
+1. **Trigger:** Microsoft Outlook → *New Email Matching Search*, with the search string above.
+2. **Filter by Zapier** (belt and braces): continue only if Subject or Body Preview *contains* one of the keywords.
 3. **AI by Zapier** (optional, 1 step): "Summarise this email in one line and say which keyword matched." Output `summary`.
-4. **Slack → Send Direct Message** to each member: `📬 {{summary}} · from {{from}} · {{subject}}` + link to the email.
-5. **Gmail → Send Email** to personal addresses, same text.
+4. **Slack → Send Direct Message** to each member: `📬 {{summary}} · from {{from}} · {{subject}}` + the email's web link.
+5. **Microsoft Outlook → Send Email** (from the school account) to each member's personal address, same text.
 
 ### Zap 2 · 7pm digest (the loop: every day → one summary)
 1. **Trigger:** Schedule by Zapier → *Every Day*, 19:00 Asia/Singapore.
-2. **Gmail → Find Emails** with the same search string (last 24h). Zapier returns up to the newest matches.
-3. **AI by Zapier**: "Produce a bullet digest of these emails grouped by professor/module." (If nothing found, Filter stops the Zap.)
-4. **Slack → Send Channel Message** to a group channel + **Gmail → Send Email** to personal addresses.
+2. **Microsoft Outlook → Bulk Find Emails** with the same search string (returns several matches; use *Find Emails* if Bulk is unavailable on the plan).
+3. **Filter by Zapier**: stop if nothing was found. Then **AI by Zapier**: "Bullet digest of today's emails, grouped by professor/module."
+4. **Slack → Send Channel Message** to a group channel + **Microsoft Outlook → Send Email** to personal addresses.
+
+### If SMU blocks Zapier at the sign-in step
+University Microsoft 365 tenants often require IT admin approval for third-party apps. If Zapier's Outlook sign-in shows
+"Need admin approval": build the observe step in **Power Automate** (included with SMU Microsoft 365, already approved).
+Flow: *Office 365 Outlook → When a new email arrives (V3)* with the keyword condition → *HTTP POST* to a Zapier
+**Webhooks → Catch Hook** URL. Zapier then runs steps 3–5 unchanged. (The Power Automate HTTP action may need a premium
+licence; if so, use the free *Slack → Post message* connector in Power Automate directly.)
 
 ### Test evidence to capture for the submission
 - Zapier *Zap History* showing one run of each Zap.
