@@ -11,18 +11,18 @@
   :root {
     --paper: #f4f1ea; --sheet: #fbf9f4; --ink: #1d1b18; --soft: #6f6a60; --rule: #d9d3c6;
     --signal: #d4502b;
-    --farm: #4f7a3a; --strat: #3d4c8f; --jewel: #a8792a;
+    --farm: #4f7a3a; --strat: #3d4c8f; --jewel: #a8792a; --sentinel: #b03a5b;
     --serif: "Fraunces", Georgia, serif; --sans: "Inter", system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --paper: #151412; --sheet: #1c1a17; --ink: #efe9dd; --soft: #9c958a; --rule: #34302a;
-      --farm: #86b06c; --strat: #8c9ae0; --jewel: #d9ad5c;
+      --farm: #86b06c; --strat: #8c9ae0; --jewel: #d9ad5c; --sentinel: #e3789a;
     }
   }
   :root[data-theme="dark"] {
     --paper: #151412; --sheet: #1c1a17; --ink: #efe9dd; --soft: #9c958a; --rule: #34302a;
-    --farm: #86b06c; --strat: #8c9ae0; --jewel: #d9ad5c;
+    --farm: #86b06c; --strat: #8c9ae0; --jewel: #d9ad5c; --sentinel: #e3789a;
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
@@ -78,8 +78,21 @@
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip { border: 1px solid var(--rule); background: var(--sheet); border-radius: 999px; padding: 8px 13px; font-weight: 500; }
   .chip.placed { opacity: .38; text-decoration: line-through; text-decoration-color: var(--soft); }
-  .farm { background: var(--farm); } .strat { background: var(--strat); } .jewel { background: var(--jewel); }
+  .farm { background: var(--farm); } .strat { background: var(--strat); } .jewel { background: var(--jewel); } .sentinel { background: var(--sentinel); }
 
+  .loop { display: none; margin: 26px 0 0; padding: 20px 22px; background: var(--sheet); border: 1px solid var(--rule); }
+  .loop.show { display: block; animation: rise .45s cubic-bezier(.2,.7,.2,1); }
+  .loop h4 { font: 400 20px/1.2 var(--serif); margin: 0 0 12px; }
+  .loop h4 span { font: 500 11px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--soft); margin-left: 12px; }
+  .cycle { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+  .pill { border: 1px solid var(--ink); border-radius: 999px; padding: 7px 14px; font-weight: 500; }
+  .pill small { display: block; font: 400 11px/1.3 var(--sans); color: var(--soft); font-weight: 400; }
+  .arrow { color: var(--signal); font-family: var(--mono); }
+  .tools { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .tools h5 { font: 500 11px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--soft); margin: 0 0 8px; }
+  .tools code { display: block; font: 400 13px/1.9 var(--mono); }
+  .tools .gate { color: var(--signal); }
+  @media (max-width: 760px) { .tools { grid-template-columns: 1fr; } }
   footer { margin-top: 40px; padding-top: 14px; border-top: 1px solid var(--rule); font: 400 11px/1.6 var(--mono); color: var(--soft); letter-spacing: .04em; }
   .toast { position: fixed; bottom: 18px; left: 50%; transform: translate(-50%, 10px); background: var(--ink); color: var(--paper); padding: 10px 16px; border-radius: 999px; font: 500 12px/1 var(--mono); opacity: 0; transition: opacity .3s, transform .3s; pointer-events: none; }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
@@ -104,7 +117,7 @@
     <div>
       <div class="kicker">MGMT 6110 · Group project · Human–AI task map</div>
       <h1>Who holds <em>the pen?</em></h1>
-      <p class="lede">A modern farm, an AI strategist and a necklace jeweller. Twelve real tasks, sorted by whether the work has one right answer and whether people and AI must do it together. Each task triggers its own Zapier workflow.</p>
+      <p class="lede">A modern farm, an AI strategist, a necklace jeweller, and the agent we built to watch our school inbox. Thirteen real tasks, sorted by whether the work has one right answer and whether people and AI must do it together. Each task triggers its own Zapier workflow.</p>
     </div>
     <div class="count" id="count">0<small>of 12 placed</small></div>
   </header>
@@ -114,6 +127,7 @@
     <button data-f="farm"><span class="swatch farm"></span>Modern farm</button>
     <button data-f="strat"><span class="swatch strat"></span>AI strategist</button>
     <button data-f="jewel"><span class="swatch jewel"></span>Necklace jeweller</button>
+    <button data-f="sentinel"><span class="swatch sentinel"></span>School mail sentinel</button>
     <button id="tour">Play walkthrough</button>
   </div>
 
@@ -131,10 +145,23 @@
 
   <div class="note" id="note">Pick a task below, or play the walkthrough.</div>
 
+  <section class="loop" id="loop">
+    <h4>One email goes round the loop <span>School mail sentinel · Zapier</span></h4>
+    <div class="cycle">
+      <div class="pill">Observe<small>New email in the school inbox, or the 7 pm clock</small></div><span class="arrow">→</span>
+      <div class="pill">Think<small>Does it concern MBAI, a named professor, or me?</small></div><span class="arrow">→</span>
+      <div class="pill">Act<small>Summarise, then notify Slack and personal email</small></div><span class="arrow">↻</span>
+    </div>
+    <div class="tools">
+      <div><h5>Tool menu · Zapier checks, then runs</h5><code>search_mailbox(query)</code><code>summarise(email)</code><code>send_slack_dm(text)</code><code>send_personal_email(text)</code></div>
+      <div><h5>Human gate · built into the menu</h5><code class="gate">no reply · no forward · no delete</code><code>The agent can only tell the student. The student reads the original and decides what to do.</code><code>Trajectory: every run is logged in Zap History.</code></div>
+    </div>
+  </section>
+
   <div class="tray-h"><span>Task tray</span><button id="all">Place all</button><button id="clear">Reset</button></div>
   <div class="chips" id="chips"></div>
 
-  <footer>Quadrant framework: MGMT 6110 Week 7, The Map of Human-AI Collaboration. Tasks, placements and design are the group's own.</footer>
+  <footer>Quadrant framework and agent loop: Roh, S. (2026) MGMT 6110 Week 7, <i>The Map of Human-AI Collaboration</i> and <i>Building AI Agents I</i>, SMU. · Agrawal, Gans &amp; Goldfarb (2018) <i>Prediction Machines</i>, HBR Press. · Davenport &amp; Kirby (2016) <i>Only Humans Need Apply</i>, Harper Business. Tasks, placements and design are the group's own.</footer>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -148,7 +175,7 @@ const Q = {
   bl: "AI alone, with checks",
   br: "A person decides, AI alongside",
 };
-const BIZ = { farm: "Modern farm", strat: "AI strategist", jewel: "Necklace jeweller" };
+const BIZ = { farm: "Modern farm", strat: "AI strategist", jewel: "Necklace jeweller", sentinel: "School mail sentinel" };
 
 const TASKS = [
   { b: "farm",  q: "bl", t: "Flag sensor readings outside thresholds", why: "Soil moisture, temperature and feed levels have fixed safe ranges, so AI can check every reading alone; a weekly spot-check confirms the thresholds." },
@@ -163,6 +190,7 @@ const TASKS = [
   { b: "jewel", q: "tl", t: "Write product pages with exact metal and carat specs", why: "Specs like 18k gold or 0.5 ct must be exactly right; the jeweller leads and AI drafts the copy around their facts." },
   { b: "jewel", q: "tr", t: "Test ad and photo variants", why: "No single best ad; agents generate and A/B-test variants, the jeweller judges which fit the brand." },
   { b: "jewel", q: "br", t: "Price a custom or new-collection necklace", why: "Pricing mixes craft, brand and margin; AI shows comparable prices and metal costs, the jeweller sets the price." },
+  { b: "sentinel", q: "bl", t: "Alert me when school email mentions MBAI or my professors", why: "Whether an email names MBAI, a professor or me has one right answer, and a student could scan the inbox by hand. The agent does it alone and cannot reply, forward or delete; the 7 pm digest and a weekly look at Zap History are the checks." },
 ];
 
 const $ = (id) => document.getElementById(id);
@@ -223,6 +251,7 @@ function clearAll() {
 
 function setFilter(f) {
   filter = f;
+  $("loop").classList.toggle("show", f === "sentinel");
   document.querySelectorAll("#filters [data-f]").forEach((b) => b.classList.toggle("on", b.dataset.f === f));
   render();
 }

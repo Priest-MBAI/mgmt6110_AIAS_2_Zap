@@ -1,44 +1,73 @@
-# Plan: Human-AI 2x2 quadrant front-end + Zap trigger + video (MGMT6110 group)
+# Plan: Task 2 — "School Mail Sentinel" looping Zap + add it to the quadrant map
 
 ## Context
-The group needs a deployable (Vercel) front-end that places tasks from 3 business functions on Prof. Roh's Week 7
-2x2 "Map of Human-AI Collaboration", with each task able to fire a Zapier Zap, plus a step-by-step video.
-Time budget is about 10 minutes, so this uses one static HTML file, no framework or build step.
+Task 1 (the quadrant map at https://mgmt6110zapgroup7.vercel.app, repo `Priest-MBAI/mgmt6110_AIAS_2_Zap`) is live.
+Task 2: build an automated looping workflow that watches the school mailbox, fires a notification when an email
+concerns the MBAI programme, and then place that agent on the map with a justification. Group decided: **both**
+timings (immediate alert + 7pm digest) and **Slack + personal email** as channels.
 
-## Framework (copied from the Week 7 slide)
-| | Work with a right answer | Work with no single right answer |
-|---|---|---|
-| **People + AI must do it together** | A person leads, AI inside | Agents run it, a person judges |
-| **Either can do it alone** | AI alone, with checks | A person decides, AI alongside |
+## Part A0 — describe the agent in Prof. Roh's loop vocabulary (Week 7 slide 10: Observe → Think → Act, tool menu, trajectory, human gate)
 
-## Task placements (12 tasks, 4 per business, one in each quadrant)
-| Business | AI alone, with checks | A person leads, AI inside | Agents run it, a person judges | A person decides, AI alongside |
-|---|---|---|---|---|
-| Modern farm | Flag sensor readings outside thresholds | Diagnose crop disease from a leaf photo | Plan the daily task roster around weather | Decide to treat or cull a sick animal |
-| AI strategist | Audit which teams use which tools | Calculate the ROI of an AI pilot | Scan departments and rank AI opportunities | Recommend which AI bet the CEO funds |
-| Necklace jeweller | Answer "where is my order?" queries | Write product pages with exact metal and carat specs | Test ad and photo variants | Price a custom or new-collection necklace |
+| Loop element | School Mail Sentinel |
+|---|---|
+| **Observe** | New email lands in the school mailbox (Gmail trigger) — or, for the digest, the 7pm clock tick. |
+| **Think** (model) | AI by Zapier reads subject + body and answers: *does this concern MBAI, a named professor, or the student?* Then writes a one-line summary and picks the matched keyword. |
+| **Act** (tool menu, checked and run by Zapier) | `search_mailbox(query)` · `summarise(email)` · `send_slack_dm(text)` · `send_personal_email(text)`. |
+| **Human gate built into the tool menu** | The menu has **no** `reply`, `forward`, `delete` or `mark_read`. The agent can only tell the student; the student reads the original and decides whether to act. (Same principle as the slide's `draft_email` that "cannot send".) |
+| **Trajectory** (the run's record) | Zapier *Zap History* logs every step with inputs and outputs for each run — this is what the group screenshots as evidence. |
+| **Why a second turn?** | The 7pm digest is the second pass over the same observations: anything the immediate loop missed (or a keyword list gap) is caught once a day. |
 
-Each task gets a one-line reason in the UI, matching the reference slide's pattern.
+## Part A — the two Zaps (built in the Zapier UI; nothing to code)
 
-## Files to create (in `group-quadrant/` in this repo)
-1. `index.html`: whole app, inline CSS and JS
-   - 2x2 grid, a business filter (All / Farm / Strategist / Jeweller), and clickable task chips that place a task into its quadrant and show the reason
-   - "Run Zap" button on each placed task: `fetch(ZAPIER_HOOK_URL, {method:'POST', mode:'no-cors', body: JSON.stringify({business, task, quadrant, human_in_loop, ts})})`
-   - "Tour" button: auto-steps through axes → quadrants → each business's tasks (about 3s per step) for the video recording
-2. `vercel.json`: not needed. A static file deploys as-is.
+### Zap 1 · Immediate alert (the loop: every matching email → one alert)
+1. **Trigger:** Gmail → *New Email Matching Search*, account = school mailbox. Search string:
+   `newer_than:1d {MBAI "Artificial Intelligence" "Sungjong Roh" "An-Ping Lin" "Ernst Christian Osinga" "Lim Yun Fong" "Alan Asman"}`
+   (Gmail `{ }` = OR. Add each member's full name and their other module profs.)
+2. **Filter by Zapier** (belt and braces): continue only if Subject or Body *contains* one of the same keywords.
+3. **AI by Zapier** (optional, 1 step): "Summarise this email in one line and say which keyword matched." Output `summary`.
+4. **Slack → Send Direct Message** to each member: `📬 {{summary}} · from {{from}} · {{subject}}` + link to the email.
+5. **Gmail → Send Email** to personal addresses, same text.
 
-## Zap (built in the Zapier UI by the group)
-1. Trigger: **Webhooks by Zapier → Catch Hook**. Copy the URL into `ZAPIER_HOOK_URL` in `index.html`.
-2. **Paths by Zapier** on `quadrant`:
-   - "AI alone, with checks" → AI by Zapier step → log to Google Sheet
-   - Every other path → AI by Zapier draft → **Human in the Loop** approval (or a Slack/Gmail message) → log to Sheet
+### Zap 2 · 7pm digest (the loop: every day → one summary)
+1. **Trigger:** Schedule by Zapier → *Every Day*, 19:00 Asia/Singapore.
+2. **Gmail → Find Emails** with the same search string (last 24h). Zapier returns up to the newest matches.
+3. **AI by Zapier**: "Produce a bullet digest of these emails grouped by professor/module." (If nothing found, Filter stops the Zap.)
+4. **Slack → Send Channel Message** to a group channel + **Gmail → Send Email** to personal addresses.
 
-## Steps and time
-1. Write `index.html` (about 3 min, Claude)
-2. Deploy: `npx vercel --prod` from `group-quadrant/` (about 2 min, needs the group's Vercel login)
-3. Paste the Catch Hook URL, redeploy, click one Run Zap, and check that Zapier shows the test record (about 3 min)
-4. Video: open the deployed URL, press Cmd+Shift+5 → record, click Tour (about 2 min of footage)
+### Test evidence to capture for the submission
+- Zapier *Zap History* showing one run of each Zap.
+- Screenshot of the Slack DM and the personal-inbox email.
+
+## Part B — add the agent to the quadrant map
+
+**Placement: 03 · AI alone, with checks** (one right answer; either can do it alone).
+
+Why (and sources to cite in the write-up):
+- *One right answer:* "Does this email mention MBAI / a named professor / my name?" is a classification with a
+  verifiable ground truth — the keyword is either in the text or it isn't. Per the Week 7 map, right-answer work
+  sits in the left column (Roh, MGMT 6110 Week 7, *The Map of Human-AI Collaboration*).
+- *Either can do it alone:* a student could scan the inbox by hand; the Zap does the identical check faster and
+  never forgets. Nothing about the task needs a human *in the moment*. This is prediction, not judgment —
+  Agrawal, Gans & Goldfarb, *Prediction Machines* (2018): automate when the prediction is cheap and the
+  decision rule is fixed.
+- *With checks:* false positives cost one extra notification; false negatives are caught by the 7pm digest
+  (the second loop is the check on the first). A weekly review of Zap History is the human audit. Low-stakes,
+  reversible, high-volume work is the canonical automation zone (Davenport & Kirby, *Only Humans Need Apply*, 2016).
+- *Why not 02 "Agents run it, a person judges":* no output needs approval before it ships — a notification is
+  not a decision. *Why not 01:* a person does not lead; they are just the recipient.
+
+### File changes (`index.html`, both copies: Desktop repo + `group-quadrant/`)
+1. Add a 4th business `sentinel: "School mail sentinel"` to `BIZ`, a colour token `--sentinel`, a filter button and swatch.
+2. Add one task to `TASKS`:
+   `{ b:"sentinel", q:"bl", t:"Alert me when school email mentions MBAI or my professors",
+      why:"Keyword match has a right answer and a student could do it by hand; the Zap does it alone, and the 7pm digest plus a weekly Zap-History review are the checks." }`
+3. Header count becomes "of 13 placed" automatically (`TASKS.length`).
+3b. Add a small "Agent loop" card under the map (shown when the sentinel filter is active): three pills **Observe → Think → Act**, the four-item tool menu, and the line "no reply/forward/delete tool: the student decides". Uses the same paper/serif styling; no new libraries.
+4. Add a short **Sources** list in the footer: Roh Week 7; Agrawal/Gans/Goldfarb 2018; Davenport & Kirby 2016.
+5. Walkthrough: the new business is picked up automatically by the `Object.keys(BIZ)` loop.
+6. `git commit` + `git push` → Vercel redeploys.
 
 ## Verification
-- Open `index.html` locally in the browser pane. Check that all 12 tasks place correctly, Tour runs end-to-end, and no console errors appear.
-- After deploy, a Run Zap click shows up in Zapier's Catch Hook "Test trigger".
+- Open the live URL: "Place all" shows 13 placed, bl quadrant has 4 tasks; filter "School mail sentinel" shows one chip.
+- Walkthrough runs through the 4th business without error; console clean.
+- Zapier: send a test email with "MBAI" in the subject to the school address → Slack DM + personal email arrive within ~2 min; Zap 2 "Run now" produces a digest.
