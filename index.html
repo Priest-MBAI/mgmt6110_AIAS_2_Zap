@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Who Holds the Pen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f4f1ea; --sheet: #fbf9f4; --ink: #1d1b18; --soft: #6f6a60; --rule: #d9d3c6;
+    --signal: #d4502b;
+    --farm: #4f7a3a; --strat: #3d4c8f; --jewel: #a8792a;
+    --serif: "Fraunces", Georgia, serif; --sans: "Inter", system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #151412; --sheet: #1c1a17; --ink: #efe9dd; --soft: #9c958a; --rule: #34302a;
+      --farm: #86b06c; --strat: #8c9ae0; --jewel: #d9ad5c;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #151412; --sheet: #1c1a17; --ink: #efe9dd; --soft: #9c958a; --rule: #34302a;
+    --farm: #86b06c; --strat: #8c9ae0; --jewel: #d9ad5c;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 40px 16px 56px; }
+
+  header { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; border-bottom: 1px solid var(--ink); padding-bottom: 20px; }
+  .kicker { font: 500 11px/1 var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--soft); }
+  h1 { font: 400 clamp(34px, 5vw, 58px)/1.02 var(--serif); letter-spacing: -.02em; margin: 12px 0 10px; }
+  h1 em { color: var(--signal); }
+  .lede { max-width: 58ch; color: var(--soft); margin: 0; }
+  .count { font: 400 44px/1 var(--serif); text-align: right; }
+  .count small { display: block; font: 500 10px/1.4 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--soft); margin-top: 6px; }
+
+  .bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 18px 0 26px; }
+  button { font: 500 13px/1 var(--sans); cursor: pointer; border-radius: 999px; border: 1px solid var(--rule); background: transparent; color: var(--ink); padding: 9px 14px; transition: background .2s, border-color .2s, color .2s; }
+  button:hover { border-color: var(--ink); }
+  button.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .swatch { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 7px; vertical-align: 1px; }
+  #tour { margin-left: auto; background: var(--signal); border-color: var(--signal); color: #fff; }
+  #tour:hover { filter: brightness(1.08); }
+
+  /* The map: a crosshair, not four boxes */
+  .map { display: grid; grid-template-columns: 34px 1fr 1fr; grid-template-rows: auto 1fr 1fr; position: relative; }
+  .colh { font: 500 11px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--soft); padding: 0 22px 12px; transition: color .3s; }
+  .rowh { writing-mode: vertical-rl; transform: rotate(180deg); font: 500 11px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--soft); text-align: center; padding: 0 0 0 10px; transition: color .3s; }
+  .colh.glow, .rowh.glow { color: var(--signal); }
+  .q { position: relative; padding: 22px 22px 26px; min-height: 230px; background: var(--sheet); transition: background .4s; }
+  .q.tl { border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
+  .q.tr { border-bottom: 1px solid var(--ink); }
+  .q.bl { border-right: 1px solid var(--ink); }
+  .q.glow { background: color-mix(in srgb, var(--signal) 9%, var(--sheet)); }
+  .qhead { display: flex; gap: 14px; align-items: baseline; margin-bottom: 4px; }
+  .num { font: 400 13px/1 var(--mono); color: var(--signal); }
+  .q h3 { font: 400 23px/1.15 var(--serif); margin: 0; letter-spacing: -.01em; }
+  .hil { font: 400 11px/1.4 var(--mono); letter-spacing: .06em; color: var(--soft); margin: 6px 0 14px 27px; text-transform: uppercase; }
+  .hil b { color: var(--ink); font-weight: 500; }
+
+  .task { display: grid; grid-template-columns: 10px 1fr auto; gap: 12px; padding: 11px 0; border-top: 1px solid var(--rule); animation: rise .45s cubic-bezier(.2,.7,.2,1); transition: opacity .3s; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 7px; }
+  .task .t { font-weight: 500; }
+  .task .t small { display: block; font: 500 10px/1.6 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--soft); }
+  .task .why { display: block; font-weight: 400; color: var(--soft); font-size: 13.5px; margin-top: 3px; }
+  .task button { padding: 6px 10px; font: 500 11px/1 var(--mono); letter-spacing: .04em; align-self: start; }
+  .task button:hover { background: var(--ink); color: var(--paper); }
+  .dim { opacity: .22; }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  .note { font: 400 italic 21px/1.4 var(--serif); margin: 30px 0 22px; min-height: 60px; max-width: 70ch; padding-left: 18px; border-left: 2px solid var(--signal); }
+  .note b { font-style: normal; font-weight: 600; }
+
+  .tray-h { font: 500 11px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--soft); margin-bottom: 12px; display: flex; gap: 8px; align-items: center; }
+  .tray-h span { flex: 1; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { border: 1px solid var(--rule); background: var(--sheet); border-radius: 999px; padding: 8px 13px; font-weight: 500; }
+  .chip.placed { opacity: .38; text-decoration: line-through; text-decoration-color: var(--soft); }
+  .farm { background: var(--farm); } .strat { background: var(--strat); } .jewel { background: var(--jewel); }
+
+  footer { margin-top: 40px; padding-top: 14px; border-top: 1px solid var(--rule); font: 400 11px/1.6 var(--mono); color: var(--soft); letter-spacing: .04em; }
+  .toast { position: fixed; bottom: 18px; left: 50%; transform: translate(-50%, 10px); background: var(--ink); color: var(--paper); padding: 10px 16px; border-radius: 999px; font: 500 12px/1 var(--mono); opacity: 0; transition: opacity .3s, transform .3s; pointer-events: none; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (max-width: 760px) {
+    header { grid-template-columns: 1fr; }
+    .count { text-align: left; }
+    #tour { margin-left: 0; }
+    .map { grid-template-columns: 1fr; }
+    .colh, .rowh, .corner { display: none; }
+    .q { border: 0 !important; border-top: 1px solid var(--ink) !important; }
+    .q h3::after { content: attr(data-axes); display: block; font: 500 10px/1.8 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--soft); }
+    .task { grid-template-columns: 10px 1fr; }
+    .task button { grid-column: 2; justify-self: start; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="kicker">MGMT 6110 · Group project · Human–AI task map</div>
+      <h1>Who holds <em>the pen?</em></h1>
+      <p class="lede">A modern farm, an AI strategist and a necklace jeweller. Twelve real tasks, sorted by whether the work has one right answer and whether people and AI must do it together. Each task triggers its own Zapier workflow.</p>
+    </div>
+    <div class="count" id="count">0<small>of 12 placed</small></div>
+  </header>
+
+  <div class="bar" id="filters">
+    <button class="on" data-f="all">All</button>
+    <button data-f="farm"><span class="swatch farm"></span>Modern farm</button>
+    <button data-f="strat"><span class="swatch strat"></span>AI strategist</button>
+    <button data-f="jewel"><span class="swatch jewel"></span>Necklace jeweller</button>
+    <button id="tour">Play walkthrough</button>
+  </div>
+
+  <div class="map">
+    <div class="corner"></div>
+    <div class="colh" id="c1">↓ One right answer</div>
+    <div class="colh" id="c2">↓ No single right answer</div>
+    <div class="rowh" id="r1">Must work together</div>
+    <div class="q tl" id="tl"><div class="qhead"><span class="num">01</span><h3 data-axes="Right answer · together">A person leads, AI inside</h3></div><div class="hil">Loop · <b>person owns the answer</b></div></div>
+    <div class="q tr" id="tr"><div class="qhead"><span class="num">02</span><h3 data-axes="No single answer · together">Agents run it, a person judges</h3></div><div class="hil">Loop · <b>person approves the output</b></div></div>
+    <div class="rowh" id="r2">Either can do it alone</div>
+    <div class="q bl" id="bl"><div class="qhead"><span class="num">03</span><h3 data-axes="Right answer · either alone">AI alone, with checks</h3></div><div class="hil">No loop · <b>automated checks</b></div></div>
+    <div class="q br" id="br"><div class="qhead"><span class="num">04</span><h3 data-axes="No single answer · either alone">A person decides, AI alongside</h3></div><div class="hil">Loop · <b>person makes the call</b></div></div>
+  </div>
+
+  <div class="note" id="note">Pick a task below, or play the walkthrough.</div>
+
+  <div class="tray-h"><span>Task tray</span><button id="all">Place all</button><button id="clear">Reset</button></div>
+  <div class="chips" id="chips"></div>
+
+  <footer>Quadrant framework: MGMT 6110 Week 7, The Map of Human-AI Collaboration. Tasks, placements and design are the group's own.</footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// Paste the Zapier "Catch Hook" URL here (Webhooks by Zapier → Catch Hook).
+const ZAPIER_HOOK_URL = "";
+
+const Q = {
+  tl: "A person leads, AI inside",
+  tr: "Agents run it, a person judges",
+  bl: "AI alone, with checks",
+  br: "A person decides, AI alongside",
+};
+const BIZ = { farm: "Modern farm", strat: "AI strategist", jewel: "Necklace jeweller" };
+
+const TASKS = [
+  { b: "farm",  q: "bl", t: "Flag sensor readings outside thresholds", why: "Soil moisture, temperature and feed levels have fixed safe ranges, so AI can check every reading alone; a weekly spot-check confirms the thresholds." },
+  { b: "farm",  q: "tl", t: "Diagnose crop disease from a leaf photo", why: "There is a right diagnosis, but the AI's image match needs the farmer's field knowledge to confirm it before spraying." },
+  { b: "farm",  q: "tr", t: "Plan the daily task roster around weather", why: "Many good rosters exist; an agent drafts one from forecasts and the abnormality log, and the farm manager approves it." },
+  { b: "farm",  q: "br", t: "Decide to treat or cull a sick animal", why: "A judgement on welfare, cost and ethics; AI supplies the health history, the farmer decides." },
+  { b: "strat", q: "bl", t: "Audit which teams use which tools", why: "Licence and login data give a factual answer; AI compiles it alone and a sample is checked by hand." },
+  { b: "strat", q: "tl", t: "Calculate the ROI of an AI pilot", why: "The arithmetic has a right answer, but the strategist must choose the cost and benefit inputs; AI runs the model inside their work." },
+  { b: "strat", q: "tr", t: "Scan departments and rank AI opportunities", why: "No single right ranking; agents read process docs and score each opportunity, the strategist judges the shortlist." },
+  { b: "strat", q: "br", t: "Recommend which AI bet the CEO funds", why: "A strategic call with trade-offs and politics; AI prepares scenarios, the strategist makes the recommendation." },
+  { b: "jewel", q: "bl", t: "Answer \"where is my order?\" queries", why: "The courier tracking record is the right answer; an AI agent replies alone and escalates anything unmatched." },
+  { b: "jewel", q: "tl", t: "Write product pages with exact metal and carat specs", why: "Specs like 18k gold or 0.5 ct must be exactly right; the jeweller leads and AI drafts the copy around their facts." },
+  { b: "jewel", q: "tr", t: "Test ad and photo variants", why: "No single best ad; agents generate and A/B-test variants, the jeweller judges which fit the brand." },
+  { b: "jewel", q: "br", t: "Price a custom or new-collection necklace", why: "Pricing mixes craft, brand and margin; AI shows comparable prices and metal costs, the jeweller sets the price." },
+];
+
+const $ = (id) => document.getElementById(id);
+const placed = new Set();
+let filter = "all";
+let touring = false;
+
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2400); }
+function note(html) { $("note").innerHTML = html; }
+
+function runZap(task) {
+  const payload = {
+    business: BIZ[task.b], task: task.t, quadrant: Q[task.q],
+    human_in_loop: task.q !== "bl", reason: task.why, ts: new Date().toISOString(),
+  };
+  if (!ZAPIER_HOOK_URL) { toast("Add the Zapier Catch Hook URL to trigger the Zap"); console.log("Zap payload", payload); return; }
+  fetch(ZAPIER_HOOK_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) })
+    .then(() => toast("Zap triggered · " + task.t))
+    .catch(() => toast("Zap call failed · check the hook URL"));
+}
+
+function place(i) {
+  const task = TASKS[i];
+  if (!placed.has(i)) {
+    placed.add(i);
+    const row = document.createElement("div");
+    row.className = "task"; row.dataset.b = task.b;
+    row.innerHTML = `<span class="dot ${task.b}"></span><span class="t"><small>${BIZ[task.b]}</small>${task.t}<span class="why">${task.why}</span></span>`;
+    const btn = document.createElement("button");
+    btn.textContent = "Run Zap →"; btn.onclick = () => runZap(task);
+    row.appendChild(btn);
+    $(task.q).appendChild(row);
+  }
+  note(`<b>${task.t}</b> sits in <b>${Q[task.q]}</b>. ${task.why}`);
+  render();
+}
+
+function render() {
+  $("count").innerHTML = `${placed.size}<small>of ${TASKS.length} placed</small>`;
+  document.querySelectorAll(".task").forEach((r) => r.classList.toggle("dim", filter !== "all" && r.dataset.b !== filter));
+  $("chips").innerHTML = "";
+  TASKS.forEach((task, i) => {
+    if (filter !== "all" && task.b !== filter) return;
+    const c = document.createElement("button");
+    c.className = "chip" + (placed.has(i) ? " placed" : "");
+    c.innerHTML = `<span class="swatch ${task.b}"></span>${task.t}`;
+    c.onclick = () => place(i);
+    $("chips").appendChild(c);
+  });
+}
+
+function clearAll() {
+  placed.clear();
+  document.querySelectorAll(".task").forEach((r) => r.remove());
+  note("Pick a task below, or play the walkthrough.");
+  render();
+}
+
+function setFilter(f) {
+  filter = f;
+  document.querySelectorAll("#filters [data-f]").forEach((b) => b.classList.toggle("on", b.dataset.f === f));
+  render();
+}
+
+// Step-by-step walkthrough for the video recording.
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+function glow(ids) { document.querySelectorAll(".glow").forEach((e) => e.classList.remove("glow")); ids.forEach((id) => $(id).classList.add("glow")); }
+
+async function tour() {
+  if (touring) return;
+  touring = true; clearAll(); setFilter("all");
+  const steps = [
+    [["c1"], "First question: does the work have <b>one right answer</b>…"],
+    [["c2"], "…or <b>no single right answer</b>?"],
+    [["r1"], "Second question: must <b>people and AI work together</b>…"],
+    [["r2"], "…or can <b>either of them do it alone</b>?"],
+    [["bl"], "<b>03 · AI alone, with checks.</b> One right answer, no human needed in the moment. The Zap runs end to end."],
+    [["tl"], "<b>01 · A person leads, AI inside.</b> One right answer, but a person owns it. The Zap drafts, the person confirms."],
+    [["tr"], "<b>02 · Agents run it, a person judges.</b> Many good answers. Agents produce, a person approves before it ships."],
+    [["br"], "<b>04 · A person decides, AI alongside.</b> A judgement call. AI briefs, the person decides."],
+  ];
+  for (const [ids, text] of steps) { glow(ids); note(text); await sleep(3200); }
+  for (const b of Object.keys(BIZ)) {
+    setFilter(b); glow([]); note(`Now, the <b>${BIZ[b].toLowerCase()}</b>.`); await sleep(2200);
+    for (let i = 0; i < TASKS.length; i++) {
+      if (TASKS[i].b !== b) continue;
+      glow([TASKS[i].q]); place(i); await sleep(4200);
+    }
+  }
+  setFilter("all"); glow([]);
+  note("Every business has work in all four quadrants, so we place the <b>task</b>, never the whole job. Each Run Zap button fires that task's workflow.");
+  touring = false;
+}
+
+document.querySelectorAll("#filters [data-f]").forEach((b) => (b.onclick = () => setFilter(b.dataset.f)));
+$("tour").onclick = tour;
+$("all").onclick = () => TASKS.forEach((_, i) => place(i));
+$("clear").onclick = clearAll;
+render();
+</script>
+</body>
+</html>
